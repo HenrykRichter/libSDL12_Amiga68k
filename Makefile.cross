@@ -1,0 +1,91 @@
+# Makefile for gcc version of SDL
+
+CC = m68k-amigaos-gcc
+
+GCCFLAGS = -O2 -fomit-frame-pointer -I. -I./include -noixemul
+GLFLAGS = -resident -DSHARED_LIB
+
+CFLAGS = -I./include 
+
+GCCDEFINES = -DENABLE_CYBERGRAPHICS -DENABLE_AHI -DNO_SIGNAL_H -DNO_AMIGADEBUG
+# -DHAVE_OPENGL -DMORPHOS
+
+MOBJS =  SDL_error.mo SDL_fatal.mo SDL_RLEaccel.mo SDL_blit.mo SDL_blit_0.mo \
+   SDL_blit_1.mo SDL_blit_A.mo SDL_blit_N.mo \
+   SDL_bmp.mo SDL_cursor.mo SDL_pixels.mo SDL_surface.mo SDL_stretch.mo \
+   SDL_yuv.mo SDL_yuv_sw.mo SDL_yuv_mmx.mo SDL_video.mo SDL_audio.mo \
+   SDL_audiocvt.mo SDL_audiomem.mo SDL_mixer.mo SDL_wave.mo SDL_ahiaudio.mo \
+   SDL_systimer.mo SDL_timer.mo SDL_joystick.mo \
+   SDL_sysjoystick.mo SDL_cdrom.mo SDL_syscdrom.mo SDL_quit.mo SDL_active.mo \
+   SDL_keyboard.mo SDL_mouse.mo SDL_resize.mo SDL_rwops.mo SDL_endian.mo SDL.mo \
+   SDL_events.mo SDL_sysmutex.mo SDL_syssem.mo SDL_systhread.mo SDL_thread.mo \
+   SDL_syscond.mo SDL_cgxvideo.mo SDL_cgxmodes.mo SDL_cgximage.mo SDL_amigaevents.mo \
+   SDL_amigamouse.mo SDL_cgxgl.mo SDL_cgxwm.mo SDL_cgxyuv.mo SDL_cgxaccel.mo SDL_cgxgl_wrapper.mo \
+   SDL_gamma.mo
+
+GOBJS =  SDL_error.go SDL_fatal.go SDL_RLEaccel.go SDL_blit.go SDL_blit_0.go \
+   SDL_blit_1.go SDL_blit_A.go SDL_blit_N.go \
+   SDL_bmp.go SDL_cursor.go SDL_pixels.go SDL_surface.go SDL_stretch.go \
+   SDL_yuv.go SDL_yuv_sw.go SDL_yuv_mmx.go SDL_video.go SDL_audio.go \
+   SDL_audiocvt.go SDL_audiomem.go SDL_mixer.go SDL_wave.go SDL_ahiaudio.go \
+   SDL_systimer.go SDL_timer.go SDL_joystick.go \
+   SDL_sysjoystick.go SDL_cdrom.go SDL_syscdrom.go SDL_quit.go SDL_active.go \
+   SDL_keyboard.go SDL_mouse.go SDL_resize.go SDL_rwops.go SDL_endian.go SDL.go \
+   SDL_events.go SDL_sysmutex.go SDL_syssem.go SDL_systhread.go SDL_thread.go \
+   SDL_syscond.go SDL_cgxvideo.go SDL_cgxmodes.go SDL_cgximage.go SDL_amigaevents.go \
+   SDL_amigamouse.go SDL_cgxgl.go SDL_cgxwm.go SDL_cgxyuv.go SDL_cgxaccel.go SDL_cgxgl_wrapper.go \
+   SDL_gamma.go SDL_lutstub.ll
+
+LOBJS =  SDL_error.lo SDL_fatal.lo SDL_RLEaccel.lo SDL_blit.lo SDL_blit_0.lo \
+   SDL_blit_1.lo SDL_blit_A.lo SDL_blit_N.lo \
+   SDL_bmp.lo SDL_cursor.lo SDL_pixels.lo SDL_surface.lo SDL_stretch.lo \
+   SDL_yuv.lo SDL_yuv_sw.lo SDL_yuv_mmx.lo SDL_video.lo SDL_audio.lo \
+   SDL_audiocvt.lo SDL_audiomem.lo SDL_mixer.lo SDL_wave.lo SDL_ahiaudio.lo \
+   SDL_systimer.lo SDL_timer.lo SDL_joystick.lo \
+   SDL_sysjoystick.lo SDL_cdrom.lo SDL_syscdrom.lo SDL_quit.lo SDL_active.lo \
+   SDL_keyboard.lo SDL_mouse.lo SDL_resize.lo SDL_rwops.lo SDL_endian.lo SDL.lo \
+   SDL_events.lo SDL_sysmutex.lo SDL_syssem.lo SDL_systhread.lo SDL_thread.lo \
+   SDL_syscond.lo SDL_cgxvideo.lo SDL_cgxmodes.lo SDL_cgximage.lo SDL_amigaevents.lo \
+   SDL_amigamouse.lo SDL_cgxgl.lo SDL_cgxwm.lo SDL_cgxyuv.lo SDL_cgxaccel.lo SDL_cgxgl_wrapper.lo \
+   SDL_gamma.lo SDL_amigastub.lo SDL_lutstubrel.ll
+
+
+%.go: %.c
+	m68k-amigaos-gcc $(GCCFLAGS) $(GCCDEFINES) -o $@ -c $*.c
+
+%.lo: %.c
+	m68k-amigaos-gcc $(GCCFLAGS) $(GLFLAGS) $(GCCDEFINES) -o $@ -c $*.c
+
+%.ll: %.s
+	m68k-amigaos-as -m68010 -o $@ $*.s
+
+%.mo: %.c
+	ppc-morphos-gcc $(GCCFLAGS) $(GCCDEFINES) -DMORPHOS -o $@ -c $*.c
+
+all: SDL.library libSDL.a libSDLstub.a libSDL_mos.a 
+
+libSDLstub.a: SDLstub.go
+	m68k-amigaos-ar cru libSDLstub.a SDLstub.go
+	m68k-amigaos-ranlib libSDLstub.a
+
+SDL.library: $(LOBJS)
+	m68k-amigaos-gcc -v -s -resident -nostdlib /opt/gg/m68k-amigaos/lib/libnix/libinitr.o $(LOBJS) /opt/gg/lib/gcc-lib/m68k-amigaos/2.95.3/libgcc.a /opt/gg/m68k-amigaos/lib/libb/libnix/libnix.a  /opt/gg/m68k-amigaos/lib/libb/libnix/libm.a -o $@ 
+
+#-ldebug
+
+# gg:lib/libb/libnix/libnix.a gg:lib/libb/libnix/libstubs.a  gg:lib/libb/libnix/libm.a -o $@ -ldebug
+
+#	slink to $@ LIBFD SDL.fd lib lib:sc.lib lib:scm.lib lib:debug.lib noicons libversion 1 librevision 2 smalldata stripdebug libprefix _LIB from lib:libent.o lib:libinitr.o $(OBJS) SDL_amigasas.so
+#	gcc -v -fbaserel -nostartfiles -noixemul gg:lib/libnix/libinitr.o $(LOBJS) -o $@ -lm -ldebug
+#	gcc -v -s -resident -nostdlib gg:lib/libnix/libinitr.o $(LOBJS) -o $@ -ldebug
+
+libSDL.a: $(GOBJS)
+	-rm -f libSDL.a
+	m68k-amigaos-ar cru libSDL.a $(GOBJS)
+	m68k-amigaos-ranlib libSDL.a
+
+libSDL_mos.a: $(MOBJS)
+	-rm -f libSDL_mos.a
+	ppc-morphos-ar cru libSDL_mos.a $(MOBJS)
+	ppc-morphos-ranlib libSDL_mos.a
+
