@@ -95,6 +95,8 @@ Uint32 SDL_Swap2x16_b(Uint32 x)
 {
 #ifdef APOLLO_BLIT
 	__asm__("rorw #8,%0\n\tswap %0\n\trorw #8,%0\n\tswap %0\t\n" : "=d" (x) :  "0" (x) : "cc");
+#else
+	x = (x>>24) | ((x>>8)&0xff00) | ((x<<8)&0xff0000) | (x<<24);
 #endif
 	return x;
 }
