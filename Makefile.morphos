@@ -1,0 +1,83 @@
+# Makefile for gcc version of SDL
+#
+# changes:
+#  18-Apr: _ApolloKeyRGB565toRGB565: disabled AMMX version of ColorKeying (for now, storem is not working in Gold2)
+#  17-Nov: - fixed Shadow Surfaces (hopefully), they were effectively impossible
+#            in the code base I got
+#          - fixed ARGB32 (CGX code was assuming RGBA all the time)
+#
+PREFX=/opt/ppc-morphos
+PREF=/opt/ppc-morphos
+
+CC := $(PREFX)/bin/ppc-morphos-gcc
+AS := $(PREFX)/bin/ppc-morphos-as
+LD := $(PREFX)/bin/ppc-morphos-ld
+RL := $(PREFX)/bin/ppc-morphos-ranlib
+VASM = vasmm68k_mot
+
+DEFINES= DEFINE=ENABLE_CYBERGRAPHICS DEFINE=inline=__inline  DEFINE=NO_SIGNAL_H DEFINE=HAVE_STDIO_H DEFINE=ENABLE_AHI -DMORPHOS
+
+# DEFINE=HAVE_OPENGL
+INCLUDES= IDIR=./include/SDL
+#-I$(PREF)/m68k-unknown-amigaos/include -I$(PREF)/env/m68k-unknown-amigaos/sys-include
+#CFLAGS = CPU=68060  CODE=FAR DATA=FAR -I. -I../include -DNOIXEMUL
+#DEBUG=FULL VERBOSE
+
+GCCFLAGS = -I$(PREF)/include -I./include/ -I./include/SDL -I$(PREF)/m68k-amigaos/libnix/include \
+			-O3 -fomit-frame-pointer \
+			-DNOIXEMUL -D_HAVE_STDINT_H
+GLFLAGS = -DSHARED_LIB -lamiga
+GCCFLAGS += -DNO_AMIGADEBUG
+GLFLAGS  += -DNO_AMIGADEBUG
+
+
+GCCDEFINES = -DENABLE_CYBERGRAPHICS -DNO_SIGNAL_H -D__MEM_AMIGA -DENABLE_AHI -DMORPHOS
+#-DNO_INLINE_STDARG
+
+
+GOBJS = audio/SDL_audio.go audio/SDL_audiocvt.go audio/SDL_mixer.go audio/SDL_wave.go audio/amigaos/SDL_ahiaudio.go \
+	SDL_error.go SDL_fatal.go video/SDL_RLEaccel.go video/SDL_blit.go video/SDL_blit_0.go \
+   video/SDL_blit_1.go video/SDL_blit_A.go video/SDL_blit_N.go \
+   video/SDL_bmp.go video/SDL_cursor.go video/SDL_pixels.go video/SDL_surface.go video/SDL_stretch.go \
+   video/SDL_yuv.go video/SDL_yuv_sw.go video/SDL_video.go \
+   timer/amigaos/SDL_systimer.go timer/SDL_timer.go joystick/SDL_joystick.go \
+   joystick/SDL_sysjoystick.go SDL_cdrom.go SDL_syscdrom.go events/SDL_quit.go events/SDL_active.go \
+   events/SDL_keyboard.go events/SDL_mouse.go events/SDL_resize.go file/SDL_rwops.go SDL.go \
+   events/SDL_events.go thread/amigaos/SDL_sysmutex.go thread/amigaos/SDL_syssem.go thread/amigaos/SDL_systhread.go thread/amigaos/SDL_thread.go \
+   thread/amigaos/SDL_syscond.go video/amigaos/SDL_cgxvideo.go video/amigaos/SDL_cgxmodes.go video/amigaos/SDL_cgximage.go video/amigaos/SDL_amigaevents.go \
+   video/amigaos/SDL_amigamouse.go video/amigaos/SDL_cgxgl.go video/amigaos/SDL_cgxwm.go \
+   video/amigaos/SDL_cgxyuv.go video/amigaos/SDL_cgxaccel.go video/amigaos/SDL_cgxgl_wrapper.go \
+   video/SDL_gamma.go stdlib/SDL_stdlib.go stdlib/SDL_string.go stdlib/SDL_malloc.go stdlib/SDL_getenv.go
+
+#
+# BEGIN APOLLO ASM SUPPORT
+# ( build vasm: make CPU=m68k SYNTAX=mot )
+#VFLAGS = -devpac -I$(PREF)/os-include -Faout
+#GCCFLAGS += -DAPOLLO_BLIT -I./video/apollo
+#GCCFLAGS += -DAPOLLO_BLITDBG
+#GOBJS += video/apollo/blitapollo.ao video/apollo/apolloammxenable.ao video/apollo/colorkeyapollo.ao
+
+#%.ao: %.asm
+#	$(VASM) $(VFLAGS) -o $@ $*.asm
+#
+# END APOLLO ASM SUPPORT
+#
+
+%.go: %.c
+	$(CC) $(GCCFLAGS) $(GCCDEFINES) -o $@ -c $*.c
+
+%.ll: %.s
+	$(AS) -o $@ $*.s
+
+all: libSDL.a
+
+
+libSDL.a: $(GOBJS)
+	-rm -f libSDL.a
+	ar cru libSDL.a $(GOBJS)
+	$(RL) libSDL.a
+#	-cp libSDL.a $(PREF)/extra/lib
+
+
+clean:
+	-rm -f $(GOBJS)

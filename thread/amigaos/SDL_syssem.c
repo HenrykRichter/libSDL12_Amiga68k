@@ -50,7 +50,11 @@ static char rcsid =
 #ifndef NO_AMIGADEBUG
 #define NO_AMIGADEBUG
 #endif
+#ifdef MORPHOS
+#include <ppcinline/exec.h>
+#else
 #include <inline/exec.h>
+#endif
 #include "SDL_error.h"
 #include "SDL_thread.h"
 #include "SDL_systhread_c.h"

@@ -34,8 +34,11 @@ static char rcsid =
 #include "SDL_config.h" 
 #include <intuition/intuitionbase.h>
 #include <intuition/screens.h>
+#ifdef MORPHOS
+#include <cybergraphx/cybergraphics.h>
+#else
 #include <cybergraphics/cybergraphics.h>
-
+#endif
 
 #include "SDL_video.h"
 #include "SDL_mouse.h"
@@ -1090,10 +1093,10 @@ static SDL_Surface *CGX_SetVideoMode(_THIS, SDL_Surface *current,
 	Uint32 saved_flags;
 	int needcreate=0;
 	D(bug("CGX_SetVideoMode current:%lx\n",current));
-  
+#ifdef APOLLO_BLIT
 	if( !Apollo_AMMXon )
 		flags &= ~SDL_DOUBLEBUF;
-
+#endif
 	//printf("flags %x dbfl %x\n",flags,SDL_DOUBLEBUF);
 
 	/* Lock the event thread, in multi-threading environments */

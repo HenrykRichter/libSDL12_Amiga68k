@@ -47,11 +47,19 @@ static char rcsid =
 #include <proto/intuition.h>
 #include <proto/console.h>
 #else
+#ifdef MORPHOS
+#include <ppcinline/exec.h>
+#include <ppcinline/cybergraphics.h>
+#include <ppcinline/graphics.h>
+#include <ppcinline/intuition.h>
+#include <ppcinline/console.h>
+#else
 #include <inline/exec.h>
 #include <inline/cybergraphics.h>
 #include <inline/graphics.h>
 #include <inline/intuition.h>
 #include <inline/console.h>
+#endif
 #endif
 
 #include "../../mydebug.h"

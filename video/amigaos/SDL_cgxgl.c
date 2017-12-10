@@ -29,7 +29,7 @@ static char rcsid =
 #include <SDL_config.h> 
 #include "SDL_error.h"
 #include "SDL_cgxgl_c.h"
-#include <GL/amigamesa.h>
+//#include <GL/amigamesa.h>
 #include "SDL_cgxvideo.h"
 
 #ifdef SDL_VIDEO_OPENGL
