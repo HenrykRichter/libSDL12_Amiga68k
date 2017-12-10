@@ -45,10 +45,15 @@ static char rcsid =
 #include <exec/execbase.h>
 
 //#include <clib/alib_protos.h>
+#ifdef MORPHOS
+#include <ppcinline/dos.h>
+#include <ppcinline/exec.h>
+#include <ppcinline/graphics.h>
+#else
 #include <inline/dos.h>
 #include <inline/exec.h>
 #include <inline/graphics.h>
-
+#endif
 
 #include "../../mydebug.h"
 
@@ -62,8 +67,11 @@ static char rcsid =
 
 /* The first ticks value of the application */
 
-
+#ifdef MORPHOS
+#include <ppcinline/timer.h>
+#else
 #include <inline/timer.h>
+#endif
 
 extern struct ExecBase *SysBase;
 

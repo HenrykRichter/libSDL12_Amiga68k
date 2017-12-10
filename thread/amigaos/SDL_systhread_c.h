@@ -32,8 +32,13 @@ static char rcsid =
 #include <proto/dos.h>
 #include <proto/exec.h>
 #else
+#ifdef MORPHOS
+#include <ppcinline/dos.h>
+#include <ppcinline/exec.h>
+#else
 #include <inline/dos.h>
 #include <inline/exec.h>
+#endif
 #endif
 
 #include <stdio.h>

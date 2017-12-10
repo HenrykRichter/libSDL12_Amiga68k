@@ -36,9 +36,15 @@ static char rcsid =
 #include <proto/lowlevel.h>
 #include <proto/graphics.h>
 #else
+#ifdef MORPHOS
+#include <ppcinline/exec.h>
+#include <ppcinline/lowlevel.h>
+#include <ppcinline/graphics.h>
+#else
 #include <inline/exec.h>
 #include <inline/lowlevel.h>
 #include <inline/graphics.h>
+#endif
 #endif
 #include "../mydebug.h"
 

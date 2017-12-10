@@ -36,7 +36,11 @@ static char rcsid =
 #if defined(__SASC) || defined(WARPOS)
 #include <proto/exec.h>
 #else
+#ifdef MORPHOS
+#include <ppcinline/exec.h>
+#else
 #include <inline/exec.h>
+#endif
 #endif
 
 #ifdef ENABLE_AHI

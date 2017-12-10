@@ -93,7 +93,9 @@ int use_picasso96 = 0;
 
 Uint32 SDL_Swap2x16_b(Uint32 x)
 {
+#ifdef APOLLO_BLIT
 	__asm__("rorw #8,%0\n\tswap %0\n\trorw #8,%0\n\tswap %0\t\n" : "=d" (x) :  "0" (x) : "cc");
+#endif
 	return x;
 }
 
