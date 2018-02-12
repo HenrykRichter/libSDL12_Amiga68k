@@ -58,7 +58,7 @@ typedef unsigned long long  uint64_t;
 #define HAVE_MEMORY_H 1
 #define HAVE_STRING_H 1
 #define HAVE_STRINGS_H 1
-#define HAVE_INTTYPES_H 1
+//#define HAVE_INTTYPES_H 1
 #define HAVE_STDINT_H 1
 #define HAVE_CTYPE_H 1
 #define HAVE_MATH_H 1
