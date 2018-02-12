@@ -5,7 +5,7 @@
 #  17-Nov: - fixed Shadow Surfaces (hopefully), they were effectively impossible
 #            in the code base I got
 #          - fixed ARGB32 (CGX code was assuming RGBA all the time)
-#
+#  12-Feb: - deleted redundant includes, now only SDL/ directory remains (as it should)
 PREFX=/opt/amigaos-68k
 PREF=/opt/amigaos-68k
 
