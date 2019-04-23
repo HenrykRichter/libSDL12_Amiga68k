@@ -51,7 +51,7 @@ int skipframe=0, toggle=0;
 #if 1 
 
 #ifdef USE_CGX_WRITELUTPIXEL
-#if defined(MORPHOS) || defined(__SASC) || defined(AROS) || defined(WARPOS)
+#if defined(MORPHOS) || defined(__SASC) || defined(AROS) || defined(WARPOS) || defined(__GNUC__)
 	#define WLUT WriteLUTPixelArray
 #elif STORMC4_M68K
 
@@ -60,6 +60,7 @@ void WLUT(APTR a,UWORD b,UWORD c,UWORD d,struct RastPort *e,APTR f,UWORD g,UWORD
 	WriteLUTPixelArray(a,b,c,d,e,f,g,h,i,l,m);
 }
 #else
+#error "empty WLUT"
 
 void WLUT(APTR a,UWORD b,UWORD c,UWORD d,struct RastPort *e,APTR f,UWORD g,UWORD h,UWORD i,UWORD l,UBYTE m)
 {};
@@ -159,7 +160,7 @@ int CGX_SetupImage(_THIS, SDL_Surface *screen)
 		format = BMF_DISPLAYABLE | BMF_MINPLANES| BMF_SPECIALFMT|(PIXFMT_RGB16<< 24);
 		friendbmap = 0;
 		}	
-	if (this->hidden->swap_bytes && this->hidden->depth == 32)
+		if (this->hidden->swap_bytes && this->hidden->depth == 32)
 		{ kprintf ("Slow 32 bit pixel swap need better use a BGRA Screenmode \n");
 		format = BMF_DISPLAYABLE | BMF_MINPLANES| BMF_SPECIALFMT|(PIXFMT_BGRA32<< 24);
 		friendbmap = 0;
@@ -177,66 +178,68 @@ int CGX_SetupImage(_THIS, SDL_Surface *screen)
 		screen->hwdata->mask=NULL;
 		screen->hwdata->videodata=this;
 	//if ((!screen->flags&SDL_FULLSCREEN))
-	{    
-		if (AvailMem(MEMF_LARGEST) < (screen->w * screen->h * (this->hidden->depth /8) + 500000))
-		{kprintf("too few RAM for other bitmap \n");return -1;
-		}
-		if (!(this->hidden->bmap=AllocBitMap(screen->w,screen->h,this->hidden->depth,format,friendbmap)))
-		   {
-			format &= ~BMF_DISPLAYABLE;	
+		{    
+			if (AvailMem(MEMF_LARGEST) < (screen->w * screen->h * (this->hidden->depth /8) + 500000))
+			{
+			 kprintf("too few RAM for other bitmap \n");return -1;
+			}
 			if (!(this->hidden->bmap=AllocBitMap(screen->w,screen->h,this->hidden->depth,format,friendbmap)))
-            {kprintf ("cant alloc Bitmap\n");return -1;}	
-		   }
-        screen->hwdata->bmap = this->hidden->bmap;
-        kprintf ("before lock %lx\n",screen->hwdata->bmap );	
-		if(!(screen->hwdata->lock=LockBitMapTags(screen->hwdata->bmap,
+			{
+			 format &= ~BMF_DISPLAYABLE;	
+			 if (!(this->hidden->bmap=AllocBitMap(screen->w,screen->h,this->hidden->depth,format,friendbmap)))
+			 {kprintf ("cant alloc Bitmap\n");return -1;}
+		   	}
+		        screen->hwdata->bmap = this->hidden->bmap;
+		        kprintf ("before lock %lx\n",screen->hwdata->bmap );	
+			if(!(screen->hwdata->lock=LockBitMapTags(screen->hwdata->bmap,
 				LBMI_BASEADDRESS,(ULONG)&screen->pixels,
 				LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE))) {
 			free(screen->hwdata);
 			screen->hwdata=NULL;
+			return -1;
+			}
+			else 
+			{
+			 UnLockBitMap(screen->hwdata->lock);
+			 screen->hwdata->lock=NULL;
+			}
+			kprintf ("after lock\n");
+		     screen->pitch=pitch;
+		     this->UpdateRects = CGX_NormalUpdate;
+			 return 0;
+		}	
+		
+		if(!(screen->hwdata->lock=LockBitMapTags(SDL_RastPort->BitMap,
+				LBMI_BASEADDRESS,(ULONG)&screen->pixels,
+				LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE))) {
+			free(screen->hwdata);
+			screen->hwdata=NULL;
+			screen->hwdata->lock=NULL;
 			return -1;
 		}
 		else {
 			UnLockBitMap(screen->hwdata->lock);
 			screen->hwdata->lock=NULL;
 		}
-		kprintf ("after lock\n");
-     screen->pitch=pitch;
-     this->UpdateRects = CGX_NormalUpdate;
-	 return 0;
-	}	
 		
-    if(!(screen->hwdata->lock=LockBitMapTags(SDL_RastPort->BitMap,
-				LBMI_BASEADDRESS,(ULONG)&screen->pixels,
-				LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE))) {
-			free(screen->hwdata);
-			screen->hwdata=NULL;
-			screen->hwdata->lock=NULL;
-			return -1;
-		}
-		else {
-			UnLockBitMap(screen->hwdata->lock);
-			screen->hwdata->lock=NULL;
-		}
-		
-     this->UpdateRects = (void (*)(_THIS, int numrects, SDL_Rect *rects) )CGX_FlipHWSurface; 
-		 screen->pitch=pitch;
+ 		this->UpdateRects = (void (*)(_THIS, int numrects, SDL_Rect *rects) )CGX_FlipHWSurface; 
+		screen->pitch=pitch;
 
-        kprintf("HWSURFACE create\n");
+		kprintf("HWSURFACE create\n");
 		D(bug("Accel video image configured (%lx, pitch %ld).\n",screen->pixels,screen->pitch));
 		return 0;
 	}
 
 	screen->pixels = malloc((screen->h)*screen->pitch); // alloc screenmem
 
-	if ( screen->pixels == NULL ) {
+	if( screen->pixels == NULL ) {
 		SDL_OutOfMemory();
 		return(-1);
 	}
 
 	SDL_Ximage=screen->pixels;
 
-	if ( SDL_Ximage == NULL ) {
+	if( SDL_Ximage == NULL ) {
 		SDL_SetError("Couldn't create XImage");
 		return(-1);
 	}
