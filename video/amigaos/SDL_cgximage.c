@@ -146,6 +146,7 @@ void bcopy_swap2(APTR dst, APTR src, int size)
 	
 }
 
+#if 1 
 int CGX_SetupImage(_THIS, SDL_Surface *screen)
 {
     ULONG pitch;
@@ -267,6 +268,7 @@ void CGX_DestroyImage(_THIS, SDL_Surface *screen)
 		}
 	}
 }
+#endif
 
 /* This is a hack to see whether this system has more than 1 CPU */
 static int num_CPU(void)
@@ -274,6 +276,7 @@ static int num_CPU(void)
 	return 1;
 }
 
+#if 1 
 int CGX_ResizeImage(_THIS, SDL_Surface *screen, Uint32 flags)
 {
 	int retval;
@@ -296,6 +299,7 @@ int CGX_ResizeImage(_THIS, SDL_Surface *screen, Uint32 flags)
 
 	return(retval);
 }
+#endif
 
 int CGX_AllocHWSurface(_THIS, SDL_Surface *surface)
 {
@@ -416,9 +420,29 @@ int CGX_FlipHWSurface(_THIS, SDL_Surface *surface)
 		toggle =0;
 	}*/
 	static int current=0;
+	int mustlock = 0;
+	ULONG pitch;
+
     //kprintf("before change\n"); 
 	//surface->hwdata->bmap=SDL_RastPort->BitMap=this->hidden->SB[current]->sb_BitMap;
-	
+
+	/* */
+	if( surface->hwdata->lock )
+	{
+		UnLockBitMap(surface->hwdata->lock);
+		mustlock = 1;
+	}
+	if( (surface->hwdata->lock=LockBitMapTags(SDL_RastPort->BitMap,
+				LBMI_BASEADDRESS,(ULONG)&surface->pixels,
+				LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE))) 
+	{
+		if( !mustlock )
+		{
+			UnLockBitMap(surface->hwdata->lock);
+			surface->hwdata->lock = NULL;
+		}
+	}
+
 	if(this->hidden->dbuffer) // currently deactivate
 	{
 	 int ret;
