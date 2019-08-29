@@ -1212,8 +1212,9 @@ buildnewscreen:
 				CYBRBIDTG_Depth,bpp,
 				TAG_DONE);
 			D(bug("Mode ID %lx\n",okid));		
-		}  
-
+		} 
+		swidth=width;
+		sheight=height;
 
 		GFX_Display=NULL;
 		this->hidden->dbscrollscreen = 0; /* no doublebuffer scroll screen */
@@ -1290,6 +1291,7 @@ buildnewscreen:
 					D(bug("Initialize double buffered scrolling screen\n"));
 					/* copy bitmap */
 					memcpy( &this->hidden->dbitmap,GFX_Display->RastPort.BitMap, sizeof( struct BitMap ));
+					RectFill( &GFX_Display->RastPort, 0, 0, GFX_Display->Width, GFX_Display->Height);
 					/* move secondary bitmap further down */
 					this->hidden->dbitmap.Planes[0] += this->hidden->dbitmap.BytesPerRow * this->hidden->dbheight;
 					this->hidden->dbuffer=2;

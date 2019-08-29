@@ -369,23 +369,28 @@ int CGX_LockHWSurface(_THIS, SDL_Surface *surface)
 		if(!surface->hwdata->lock)
 		{	
 			Uint32 pitch;
-           if (surface->hwdata->bmap)
-		   {
-			if(!(surface->hwdata->lock=LockBitMapTags(surface->hwdata->bmap,
-					LBMI_BASEADDRESS,(ULONG)&surface->pixels,
-					LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE)))
-				return -1;
-		   }
-		   else
-		   {
-              if(!(surface->hwdata->lock=LockBitMapTags(SDL_RastPort->BitMap,
-					LBMI_BASEADDRESS,(ULONG)&surface->pixels,
-					LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE)))
-				return -1;
-		   }
+			if (surface->hwdata->bmap)
+			{
+			   if(!(surface->hwdata->lock=LockBitMapTags(surface->hwdata->bmap,
+			                          LBMI_BASEADDRESS,(ULONG)&surface->pixels,
+			                          LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE)))
+			   return -1;
+			}
+			else
+			{
+			   if(!(surface->hwdata->lock=LockBitMapTags(SDL_RastPort->BitMap,
+			                LBMI_BASEADDRESS,(ULONG)&surface->pixels,
+			                LBMI_BYTESPERROW,(ULONG)&pitch,TAG_DONE)))
+			   return -1;
+			}
 // surface->pitch e' a 16bit!
 
 			surface->pitch=pitch;
+			if( this->hidden->dbscrollscreen == 1 )
+			{
+				if( this->hidden->dbpos )
+					surface->pixels += pitch * this->hidden->dbheight;
+			}
 
 			//if(currently_fullscreen&&surface==SDL_VideoSurface)
 			//{
@@ -466,10 +471,10 @@ int CGX_FlipHWSurface(_THIS, SDL_Surface *surface)
 
 //		ScreenPosition( SDL_Display, SPOS_ABSOLUTE, 0, this->hidden->dbpos, 0, 0 );
 //		WaitBOVP(&SDL_Display->ViewPort);
-		SDL_Display->ViewPort.RasInfo->RyOffset = ( this->hidden->dbpos ) ? 1 : 0;
+		SDL_Display->ViewPort.RasInfo->RyOffset = ( this->hidden->dbpos ) ? this->hidden->dbheight : 0;
 		ScrollVPort(&SDL_Display->ViewPort);
 
-		printf("SCROLLING %d (%d)\n",this->hidden->dbpos,SDL_Display->Height);
+//		printf("SCROLLING %d (%d)\n",this->hidden->dbpos,SDL_Display->Height);
 	 }
 	 else /* dbscrollscreen */
 	 {

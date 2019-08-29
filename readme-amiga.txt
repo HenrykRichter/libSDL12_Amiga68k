@@ -20,6 +20,41 @@ activate in thread/amigaos/sdl_systhread.c the line
 -----------------------------
 SDL1.2.14d
 
+H.R. 28-Aug-2019
+     - fixes to double buffering: actually, I was surprised to find that code in a semi-working
+       state at all :-)
+
+H.R. 20-Apr-2019
+     - some fixes to SDL_cgximage.c, namely regarding compilation with a regular m68k-amigaos-gcc (2.95+)
+     - please note that you may have to add WriteLUTPixelArray() to the toolchain (missing in last
+       CyberGFX SDK), within the file inline/cybergraphics.h
+
+	static __inline ULONG
+	WriteLUTPixelArray(BASE_PAR_DECL APTR srcRect, UWORD SrcX, UWORD SrcY, UWORD SrcMod, struct RastPort * a1arg, APTR ColorTab, UWORD DestX, UWORD DestY, UWORD SizeX, UWORD SizeY, UBYTE CTFormat)
+	{
+	  BASE_EXT_DECL
+	  register ULONG res __asm("d0");
+	  register void * a6 __asm("a6") = BASE_NAME;
+	  register APTR a0 __asm("a0") = srcRect;
+	  register UWORD d0 __asm("d0") = SrcX;
+	  register UWORD d1 __asm("d1") = SrcY;
+	  register UWORD d2 __asm("d2") = SrcMod;
+	  register struct RastPort * a1 __asm("a1") = a1arg;
+	  register APTR a2 __asm("a2") = ColorTab;
+	  register UWORD d3 __asm("d3") = DestX;
+	  register UWORD d4 __asm("d4") = DestY;
+	  register UWORD d5 __asm("d5") = SizeX;
+	  register UWORD d6 __asm("d6") = SizeY;
+	  register UBYTE d7 __asm("d7") = CTFormat;
+	  __asm volatile ("jsr a6@(-0xc6:W)"
+	  : "=r" (res)
+	  : "r" (a6), "r" (a0), "r" (d0), "r" (d1), "r" (d2), "r" (a1), "r" (a2), "r" (d3), "r" (d4), "r" (d5), "r" (d6), "r" (d7)
+	  : "d0", "d1", "a0", "a1", "fp0", "fp1", "cc", "memory");
+	  return res;
+	}
+
+
+
 H.R: AMMX code for several blitting functions, see video/apollo with runtime selection between plain 68k code and AMMX, see SDL_cgxvideo.c as well
 
 H.R: 18-Apr-2017  _ApolloKeyRGB565toRGB565: disabled AMMX version of ColorKeying (for now, storem is not working in Gold2)
